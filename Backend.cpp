@@ -35,10 +35,7 @@ Backend::Backend(QObject *parent) :
 
 void Backend::Init()
 {
-
     gBackend = this;
-    mDebugSetting = 0;
-    mMonServer = NULL;
 
     mAirlineModel  = new QStringListModel(this);
     mAcTypeModel   = new QStringListModel(this);
@@ -46,25 +43,6 @@ void Backend::Init()
     mSoftwareModel = new QStringListModel(this);
 
     mStatus = "RDY";
-    mStart = "";
-    mRemainingTime = "";
-    mElapsedTime = "";
-    mConnectionType = "";
-    mProgress = "";
-    mSyncAllowed = true;
-    mShowLogWindow = false;
-    mHomeEnabled = true;
-    mPower = true;
-    mLogText = "";
-    mRunning = false;
-    mSyncRunning = false;
-    mInAbort = false;
-    mCurrPage = "Administration";
-    mProcess = NULL;
-    mTailVal = SWPN_NOTSET;
-    mSwpnVal = SWPN_NOTSET;
-    mPreparing = false;
-    mSyncTimerExc = 0;
 
     setStatusColor("blue");
 
@@ -99,7 +77,32 @@ void Backend::Init()
     ConfigHelper::instance()->execute("C GetDemoMode");
 }
 
-void Backend::setConfigValue(const QString a, const QString b) {
+void Backend::initialiseDatabases(bool something)
+{
+    qDebug() << "initialiseDatabases -----------------------------------------";
+    getSettingsDB().loadDB();
+
+    bool bv;
+    getSettingsDB().get_a6153_enabled(&bv);
+
+    QString t;
+    getSettingsDB().get_pdl_name(t);
+    setPdlName(t);
+
+    int tm;
+    getSettingsDB().get_update_timestamp(&tm);
+    setLastSync(tm);
+
+    // Load and clean SWPNS.
+    mFi.setVerified(false);
+    getDB().loadDB();
+    getDB().resetRepFound();
+    getDB().verifySWPNs(true);
+    loadRepositoryCounts();
+}
+
+void Backend::setConfigValue(const QString a, const QString b)
+{
     qDebug() << "Backend::setConfigValue" << a << b;
     if (a == "GetAccessKey") {
         mAccessKey=b;
@@ -109,11 +112,11 @@ void Backend::setConfigValue(const QString a, const QString b) {
 void Backend::loadRepositoryCounts() {
     int availswpns     = getDB().countTable("vw_pdl_swpn");
     int notdownloaded  = getDB().getSingleValue("select count(*) from tmp_swpn_rep where status = 2").toInt();
-    mRepositoryAll     = availswpns + notdownloaded;
-    mRepositoryValid   = getDB().getValidCount();
-    mRepositoryNotDown = mRepositoryAll - availswpns;
-    mRepositoryExpired = availswpns - mRepositoryValid;
-    mRepositoryNotRef  = getDB().getSingleValue("select count(*) from tmp_swpn_rep where status = 3").toInt();
+    setRepositoryAll(availswpns + notdownloaded);
+    setRepositoryValid(getDB().getValidCount());
+    setRepositoryNotDown(getRepositoryAll() - availswpns);
+    setRepositoryExpired(availswpns - getRepositoryValid());
+    setRepositoryNotRef(getDB().getSingleValue("select count(*) from tmp_swpn_rep where status = 3").toInt());
 }
 
 // ---------------- SWPN selection
@@ -373,19 +376,10 @@ void Backend::syncEnd()
     setHomeEnabled(true);
     ConfigHelper::instance()->execute("C GetRepositoryInfo");
     setUpdating(false);
+    initialiseDatabases();
 }
 
 // -----------------------------------------------------------
-
-void Backend::reloadData()
-{
-    qDebug() << "reloadData:in";
-    getDB().loadDB(true);
-    getDB().verifySWPNs(true);
-    getSettingsDB().openDB();
-    getSettingsDB().loadDB();
-    qDebug() << "reloadData:out";
-}
 
 void Backend::runCommand(QString command)
 {
@@ -571,7 +565,7 @@ void Backend::purgeRepository()
     QString proc = mFi.getScriptName() + "-P";
     int ret = QProcess::execute(proc);
     qDebug() << "purgeRepository" << proc << ret;
-    reloadData();
+    initialiseDatabases();
     // reset change date.
     getSettingsDB().set_db_pdl_change_time(QString("2000-01-01T00:00:00+00:00"));
 

@@ -119,45 +119,18 @@ Q_DECL_EXPORT int main(int argc, char **argv)
 #endif
 
     QCoreApplication::instance()->installEventFilter(app.data());
-    //QSplashScreen splash(QPixmap(qApp->applicationDirPath() + "/../resources/splash.jpg"));
-    //splash.show();
-    //qDebug() << "splash" << qApp->applicationDirPath() + "/../resources/splash.jpg";
-    //sleep(5);
-
 
     qDebug() << "accessKey" << accessKey;
     qDebug() << "syncTime" << syncTime;
 
     gBackend = new Backend();
+    gBackend->Init();
+    gBackend->initialiseDatabases();
+
     if (!accessKey.isEmpty())
         gBackend->setAccessKey(accessKey);
     if (syncTime)
         gBackend->setSyncTimer(syncTime);
-
-    gBackend->Init();
-
-//    Jacksum js;
-//    js.checkAllSWPNJackums(); exit(0);
-
-    gBackend->getSettingsDB().loadDB();
-
-    bool bv;
-    gBackend->getSettingsDB().get_a6153_enabled(&bv);
-
-    QString t;
-    gBackend->getSettingsDB().get_pdl_name(t);
-    gBackend->setPdlName(t);
-
-
-    int tm;
-    gBackend->getSettingsDB().get_update_timestamp(&tm);
-    gBackend->setLastSync(tm);
-
-    // Load and clean SWPNS.
-    gBackend->getDB().loadDB();
-    gBackend->getDB().verifySWPNs(true);
-    gBackend->loadRepositoryCounts();
-    //exit(0);
 
     gConfig  = new config();
 

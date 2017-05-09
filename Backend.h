@@ -99,6 +99,7 @@ public slots:
         qDebug() << "errorString" << error;
     }
 // End of thread stuff
+
 // PrepareSUB stuff
 public slots:
     void commandResponse(int retcode, QString output);
@@ -145,13 +146,6 @@ public:
     QStringListModel *tailsignModel();
     QStringListModel *softwareModel();
 
-//    QString getSWPath() {
-//        QString t;
-//        QString z = QString("%1/SW/%2").arg(mAirlineKey).arg(mSoftware);
-//        qDebug() << "getSWPath t:" << t;
-//        qDebug() << "getSWPath z:" << z;
-//        return t.sprintf("%s/SW/%s", (const char*) mAirlineKey.toUtf8(), (const char*) mSoftware.toUtf8());
-//    }
     Q_INVOKABLE QString doCheckTail(QString in, bool valid);
     Q_INVOKABLE QString doCheckSwpn(QString in, bool valid);
     Q_INVOKABLE QString getChoices();
@@ -175,11 +169,8 @@ signals:
     void screenStateChanged(bool turnedOn);
 
  public slots:
-
     void setConfigValue(const QString a, const QString b);
-
     void runCommand(QString command);
-
     void setAirline(QString name);
     void setACType(QString name);
     void setTailsign(QString name);
@@ -190,7 +181,6 @@ signals:
     void setLastSync(int tm);
 
     void setStatus(QString status);
-    void reloadData();
 
     void startDataLoad();
     void stopDataLoad();
@@ -252,6 +242,7 @@ public slots:
 
     void clearLog();
 public:
+    void initialiseDatabases(bool something = false);
     void setSyncTimer(int syncTime)    { mSyncTimer    = syncTime; }
     void setSyncTimerExc(int syncTime) { mSyncTimerExc = syncTime; }
     void writeStringToFile(const char * file, const char *data);
@@ -259,12 +250,12 @@ public:
     void setPower(bool power);
     bool isPower();
 
-    int mDebugSetting;
+    int mDebugSetting = 0;
     bool ifDebug(debugws_t dbg) {
         return (mDebugSetting & (DBG_ALL || dbg) ? true : false);
     }
 
-    MonitorServer *mMonServer;
+    MonitorServer *mMonServer = NULL;
     FileInfo mFi;
 
     swpnval_t getSwpnState() {
@@ -296,7 +287,7 @@ public:
     }
 
   private:
-    QProcess *mProcess;
+    QProcess *mProcess = NULL;
     void checkManualComplete();
     QString mManSoftware;
     QString mManTailSign;
@@ -318,22 +309,22 @@ public:
     QMap<QString, QStringList> Type_Software;
 
     QDir mWorkdir;
-    bool mSyncAllowed;
-    bool mPower;
-    bool mPreparing;
-    bool mRunning;
-    bool mInAbort;
+    bool mSyncAllowed = true;
+    bool mPower = true;
+    bool mPreparing = false;
+    bool mRunning = false;
+    bool mInAbort = false;
     int  mCompleteTime;
     int  mSyncTimerExc;
     int  mSyncTimer;
     int  mServerId;
     QString mServerName;
 
-    swpnval_t mTailVal;
-    swpnval_t mSwpnVal;
+    swpnval_t mTailVal = SWPN_NOTSET;
+    swpnval_t mSwpnVal = SWPN_NOTSET;
 
     QStringList mPages;
-    QString mCurrPage;
+    QString mCurrPage = "Administration";
 
     QString mEmpty;
 

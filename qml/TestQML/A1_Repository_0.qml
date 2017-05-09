@@ -98,6 +98,7 @@ Page {
                 text: "View valid"
                 enabled: true
                 onClicked: {
+                    container.repositoryClicked()
                 }
             }
             Button {
@@ -116,31 +117,6 @@ Page {
                 text: "View not referenced"
                 enabled: true
                 onClicked: {
-                }
-            }
-
-            Rectangle {
-                width: 400
-                height: 190
-                color: "white"
-                radius: 10
-                visible: backend.showLogWindow;
-                border.width: 2
-                border.color: "gray"
-
-                Flickable {
-                    contentHeight: logid.height
-                    contentWidth: logid.width
-                    anchors.margins: 10
-                    anchors.fill: parent;
-                    clip: true
-                    flickableDirection: Flickable.VerticalFlick
-                    contentY: logid.height - height;
-
-                    Text {
-                        id: logid
-                        text: backend.logText;
-                    }
                 }
             }
         }

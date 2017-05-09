@@ -21,6 +21,7 @@ DBSqlite::DBSqlite(QObject *parent) :
 
 bool DBSqlite::loadNeeded()
 {
+    return true;
     if (!QFile::exists(mFi.getDataFileName())) {
         qDebug() << "Failed to find '" << mFi.getDataFileName() << "'";
         return false;
@@ -37,7 +38,7 @@ bool DBSqlite::loadNeeded()
     return (db.lastModified() < lf.lastModified()) ? true : false;
 }
 
-bool DBSqlite::loadDB(bool clean)
+bool DBSqlite:: loadDB(bool clean)
 {
     FileInfo mFi;
 
@@ -265,7 +266,7 @@ void DBSqlite::resetRepFound() {
 }
 
 void DBSqlite::addRepInfo(QString swpn, QString media_count, int status) {
-    //qDebug() << "addRepInfo" << swpn << media_count.toInt() << status;
+    qDebug() << "addRepInfo" << swpn << media_count.toInt() << status;
     switch(status) {
     case REP_SYNCED:
         mFoundSwpns.insert(swpn, media_count);
