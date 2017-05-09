@@ -125,6 +125,8 @@ public:
         //}
         return mAccessKey;
     }
+    void loadRepositoryCounts();
+
 private:
     QString mAccessKey;
     swpnMatch mSwpnMatch;
@@ -143,10 +145,13 @@ public:
     QStringListModel *tailsignModel();
     QStringListModel *softwareModel();
 
-    QString getSWPath() {
-        QString t;
-        return t.sprintf("%s/SW/%s", (const char*) mAirlineKey.toUtf8(), (const char*) mSoftware.toUtf8());
-    }
+//    QString getSWPath() {
+//        QString t;
+//        QString z = QString("%1/SW/%2").arg(mAirlineKey).arg(mSoftware);
+//        qDebug() << "getSWPath t:" << t;
+//        qDebug() << "getSWPath z:" << z;
+//        return t.sprintf("%s/SW/%s", (const char*) mAirlineKey.toUtf8(), (const char*) mSoftware.toUtf8());
+//    }
     Q_INVOKABLE QString doCheckTail(QString in, bool valid);
     Q_INVOKABLE QString doCheckSwpn(QString in, bool valid);
     Q_INVOKABLE QString getChoices();
@@ -156,9 +161,6 @@ public:
     Q_INVOKABLE void runusbload();
 
     QStringList mColors = { "white", "red", "yellow", "lightgreen", "blue" };
-
-    QRegExp mRETailSignWhole;
-    QRegExp mRETailSignStart;
 
 signals:
     void statusChanged();
@@ -315,8 +317,6 @@ public:
     QMap<QString, QStringList> Aircraft_Tailsign;
     QMap<QString, QStringList> Type_Software;
 
-    QStringList All_Software;
-
     QDir mWorkdir;
     bool mSyncAllowed;
     bool mPower;
@@ -346,10 +346,8 @@ public:
 
     int  getServerId();
     QString  getServerName();
-//    bool getUsbButtonEnabled();
     bool getHomeEnabled();
     bool getShowLogWindow();
-//    bool getShowUSBAbort();
     bool getInstallRunning();
     bool getShowAdministration();
 

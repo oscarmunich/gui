@@ -1,5 +1,49 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>qml/TestQML/A0_main.qml</file>
+        <file>qml/TestQML/A1_Home.qml</file>
+        <file>qml/TestQML/A1_Information.qml</file>
+        <file>qml/TestQML/A1_Repository.qml</file>
+        <file>qml/TestQML/A1_Synchronisation.qml</file>
+        <file>qml/TestQML/A2_DataLoadPage.qml</file>
+        <file>qml/TestQML/A3_ScreenDataLoadMan.qml</file>
+        <file>qml/TestQML/A3_ScreenDataLoadMenu.qml</file>
+        <file>qml/TestQML/A3_ScreenDataSelect.qml</file>
+        <file>qml/TestQML/A4_A615ADataLoad.qml</file>
+        <file>qml/TestQML/A4_A6153DataLoad.qml</file>
+        <file>qml/TestQML/A4_USBDataLoad.qml</file>
+        <file>qml/TestQML/backspace_50x70.png</file>
+        <file>qml/TestQML/FakeTouchPage.qml</file>
+        <file>qml/TestQML/HeaderText.qml</file>
+        <file>qml/TestQML/RepButton.qml</file>
+        <file>qml/TestQML/RepKeyboard.qml</file>
+        <file>qml/TestQML/SystemPage.qml</file>
+        <file>qml/TestQML/TextInputBackground.qml</file>
+        <file>qml/js/Styler.js</file>
+        <file>qml/TestQML/Components/background.svg</file>
+        <file>qml/TestQML/Components/Button.qml</file>
+        <file>qml/TestQML/Components/ButtonSelect.qml</file>
+        <file>qml/TestQML/Components/CheckBox.qml</file>
+        <file>qml/TestQML/Components/EditValueItem.qml</file>
+        <file>qml/TestQML/Components/GroupBox.qml</file>
+        <file>qml/TestQML/Components/knob.svg</file>
+        <file>qml/TestQML/Components/Menu.qml</file>
+        <file>qml/TestQML/Components/MenuItem.qml</file>
+        <file>qml/TestQML/Components/MessageBox.qml</file>
+        <file>qml/TestQML/Components/modalDialog.qml</file>
+        <file>qml/TestQML/Components/OnOffSetting.qml</file>
+        <file>qml/TestQML/Components/Page.qml</file>
+        <file>qml/TestQML/Components/RadioButton.qml</file>
+        <file>qml/TestQML/Components/RadioGroup.qml</file>
+        <file>qml/TestQML/Components/SmallValItem.qml</file>
+        <file>qml/TestQML/Components/Switch.qml</file>
+        <file>qml/TestQML/Components/TestButton_2.qml</file>
+        <file>qml/TestQML/Components/TestButton.qml</file>
+        <file>qml/TestQML/Components/testElements.qml</file>
+        <file>qml/TestQML/Components/ValueItem.qml</file>
+        <file>qml/TestQML/Customized/TableField.qml</file>
+        <file>qml/TestQML/Customized/TableHeader.qml</file>
+        <file>qml/TestQML/Customized/TableView.qml</file>
     </qresource>
 </RCC>

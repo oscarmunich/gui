@@ -36,7 +36,52 @@ CheckRepository::CheckRepository(QObject *parent) :
     }
 }
 
+bool CheckRepository::quickCheck() {
+    time_t secs = time(0);
+    gBackend->getDB().resetRepInfo();
+    gBackend->getDB().loadSWPN(false);
+
+    // Create hash of swpns in metadata.
+    QStringList swpns = gBackend->getDB().getSwpnList();
+    QMap<QString, QString> swhash;
+    QStringListIterator li(swpns);
+    while (li.hasNext()) {
+        QString pn = li.next();
+        swhash[pn2fs(pn)] = pn;
+    }
+
+    // iterate thru SW directories and check meta swpns.
+    QDir swpndir(mRepPath);
+    QStringList filelist = swpndir.entryList(QStringList("[A-Z0-9]*"), QDir::Dirs | QDir::NoSymLinks);
+    // qDebug() << "---------------- quickCheck" << filelist.size();
+    foreach (const QString &item, filelist) {
+        bool exists = swhash.contains(item);
+        // qDebug() << "quickCheck" << item << exists;
+        if (exists) {
+            QString mc = gBackend->getDB().getMediaCount(swhash[item]);
+            gBackend->getDB().addRepInfo(swhash[item], mc, REP_SYNCED);
+            swhash.remove(item);
+            continue;
+        }
+        //qDebug() << "swpn not in meta:" << fs2pn(item);
+        gBackend->getDB().addRepInfo(fs2pn(item), "0", REP_NOTREF);
+    }
+
+    QMapIterator<QString, QString> mi(swhash);
+    while(mi.hasNext()) {
+        mi.next();
+        //qDebug() << "swpn not synced" << mi.key() << mi.value();
+        QString mc = gBackend->getDB().getMediaCount(mi.value());
+        gBackend->getDB().addRepInfo(mi.value(), mc, REP_NOTSYNCED);
+    }
+    qDebug() << "quickCheck" << "Elapsed:" << time(0) - secs;
+    return true;
+}
+
 bool CheckRepository::checkAll(bool force) {
+    if (!force) {
+        return quickCheck();
+    }
     time_t secs = time(0);
     gBackend->getDB().resetRepInfo();
     gBackend->getDB().loadSWPN(false);
@@ -47,7 +92,7 @@ bool CheckRepository::checkAll(bool force) {
         bool valid = checkPartNumber(pn, force);
         if (!valid)
             qDebug() << "checkPartNumber" << pn << valid;
-        gBackend->getDB().addRepInfo(pn, mMediaCount, valid);
+        gBackend->getDB().addRepInfo(pn, mMediaCount, (valid) ? REP_SYNCED : REP_NOTSYNCED);
     }
     qDebug() << "checkAll" << force << "Elapsed:" << time(0) - secs;
 
@@ -68,8 +113,8 @@ bool CheckRepository::checkPartNumber(QString partnumber, bool force)
     QString di;
     QString df;
 
-    mPartNumber    = partnumber;
-    mPartNumberDir = mRepPath + "/" + pn2fs(mPartNumber);
+    mPartNumber      = partnumber;
+    mPartNumberDir   = mRepPath + "/" + pn2fs(mPartNumber);
 
     mMediaCount      = gBackend->getDB().getMediaCount(mPartNumber);
     int mediacount   = mMediaCount.toInt();
@@ -95,7 +140,7 @@ bool CheckRepository::checkPartNumber(QString partnumber, bool force)
         di = mDotDisk.at(i);
         df = mZipDisk.at(i);
         if (!(fileExists(di) && fileExists(df))) {
-                return false;
+            return false;
         }
         if (!getAttributes(di)) {
             return false;

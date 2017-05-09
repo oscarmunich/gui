@@ -38,11 +38,11 @@ Page {
         }
 
         MenuItem {
-            text: "Data Load Menu selection"
+            text: "Data Load Menu Selection"
             onClicked: container.swpnMenuSelection()
         }
         MenuItem {
-            text: "Data Load Manual selection"
+            text: "Data Load Manual Selection"
             onClicked: container.swpnManualSelection()
         }
 

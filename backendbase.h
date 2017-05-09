@@ -106,11 +106,17 @@ class BackendBase : public QObject
 	Q_PROPERTY(QString updateStartTime    READ getUpdateStartTime                                NOTIFY updateStartTimeChanged   )
 	Q_PROPERTY(QString updateStatus       READ getUpdateStatus                                   NOTIFY updateStatusChanged      )
 	Q_PROPERTY(QString uploadStatus       READ getUploadStatus                                   NOTIFY uploadStatusChanged      )
-	Q_PROPERTY(bool    usbload            READ getUsbload                                        NOTIFY usbloadChanged           )
+    Q_PROPERTY(bool    usbload            READ getUsbload                                        NOTIFY usbloadChanged           )
+
+    Q_PROPERTY(int     repositoryAll      READ getRepositoryAll                                  NOTIFY repositoryAllChanged     )
+    Q_PROPERTY(int     repositoryValid    READ getRepositoryValid                                NOTIFY repositoryValidChanged   )
+    Q_PROPERTY(int     repositoryExpired  READ getRepositoryExpired                              NOTIFY repositoryExpiredChanged )
+    Q_PROPERTY(int     repositoryNotRef   READ getRepositoryNotRef                               NOTIFY repositoryNotRefChanged  )
+    Q_PROPERTY(int     repositoryNotDown  READ getRepositoryNotDown                              NOTIFY repositoryNotDownChanged )
 
 public:
     BackendBase() {}
-    explicit BackendBase(QObject * /* parent */ = 0) {};
+    explicit BackendBase(QObject * /* parent */ = 0) {}
 
 private:
 	QString mACType;                                   // 
@@ -157,7 +163,12 @@ private:
 	QString mUpdateStartTime;                          // 
 	QString mUpdateStatus;                             // 
 	QString mUploadStatus;                             // 
-	bool    mUsbload            = false;               // 
+    bool    mUsbload            = false;               //
+    int     mRepositoryAll      = 1;
+    int     mRepositoryValid    = 2;
+    int     mRepositoryExpired  = 3;
+    int     mRepositoryNotRef   = 4;
+    int     mRepositoryNotDown  = 5;
 
 public:
 	inline QString getACType()              { return mACType; } 
@@ -184,8 +195,13 @@ public:
 	inline QString getLogText()             { return mLogText; } 
 	inline QString getPdlName()             { return mPdlName; } 
 	inline QString getProgress()            { return mProgress; } 
-	inline QString getRemainTime()          { return mRemainTime; } 
-	inline int     getServerId()            { return mServerId; } 
+    inline QString getRemainTime()          { return mRemainTime; }
+    inline int     getRepositoryAll()       { return mRepositoryAll; }
+    inline int     getRepositoryValid()     { return mRepositoryValid; }
+    inline int     getRepositoryExpired()   { return mRepositoryExpired; }
+    inline int     getRepositoryNotRef()    { return mRepositoryNotRef; }
+    inline int     getRepositoryNotDown()   { return mRepositoryNotDown; }
+    inline int     getServerId()            { return mServerId; }
 	inline QString getServerName()          { return mServerName; } 
 	inline bool    getShowAdministration()  { return mShowAdministration; } 
 	inline bool    getShowLogWindow()       { return mShowLogWindow; } 
@@ -351,13 +367,43 @@ public:
             emit progressChanged();
         }
     }
-	virtual inline void setRemainTime(QString remainTime) {
+    virtual inline void setRemainTime(QString remainTime) {
         if (mRemainTime != remainTime) {
             mRemainTime  = remainTime;
             emit remainTimeChanged();
         }
     }
-	virtual inline void setServerId(int serverId) {
+    virtual inline void setRepositoryAll(int repositoryAll) {
+        if (mRepositoryAll != repositoryAll) {
+            mRepositoryAll  = repositoryAll;
+            emit repositoryAllChanged();
+        }
+    }
+    virtual inline void setRepositoryValid(int repositoryValid) {
+        if (mRepositoryValid != repositoryValid) {
+            mRepositoryValid  = repositoryValid;
+            emit repositoryValidChanged();
+        }
+    }
+    virtual inline void setRepositoryExpired(int repositoryExpired) {
+        if (mRepositoryExpired != repositoryExpired) {
+            mRepositoryExpired  = repositoryExpired;
+            emit repositoryExpiredChanged();
+        }
+    }
+    virtual inline void setRepositoryNotDown(int repositoryNotDown) {
+        if (mRepositoryNotDown != repositoryNotDown) {
+            mRepositoryNotDown  = repositoryNotDown;
+            emit repositoryNotDownChanged();
+        }
+    }
+    virtual inline void setRepositoryNotRef(int repositoryNotRef) {
+        if (mRepositoryNotRef != repositoryNotRef) {
+            mRepositoryNotRef  = repositoryNotRef;
+            emit repositoryNotRefChanged();
+        }
+    }
+    virtual inline void setServerId(int serverId) {
         if (mServerId != serverId) {
             mServerId  = serverId;
             emit serverIdChanged();
@@ -503,12 +549,16 @@ signals:
 	void logTextChanged();
 	void pdlNameChanged();
 	void progressChanged();
-	void remainTimeChanged();
-	void serverIdChanged();
+    void remainTimeChanged();
+    void repositoryAllChanged();
+    void repositoryValidChanged();
+    void repositoryExpiredChanged();
+    void repositoryNotRefChanged();
+    void repositoryNotDownChanged();
+    void serverIdChanged();
 	void serverNameChanged();
 	void showAdministrationChanged();
 	void showLogWindowChanged();
-    //void showUSBAbortChanged();
 	void softwareChanged();
 	void softwareCoCChanged();
 	void softwareTitleChanged();

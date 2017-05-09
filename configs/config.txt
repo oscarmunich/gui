@@ -1,0 +1,93 @@
+# get interface name by connection type
+# may be LAN, Wi-Fi, 3G
+C GetInterface <type>
+# i.e., eth0
+R GetInterface <eth0>
+
+# Up or down interface
+# value may be true or false
+C SetInterfaceEnabled <interface>|<value>
+R SetInterfaceEnabled OK
+
+# return the list of available wifi access points
+C GetWiFiAccessPoints
+T GetWiFiAccessPoints <Hangar 1#-50#true>|<Apron#-35#false>
+
+# connect to WAP
+C ConnectWAP <SSID>|<password>
+R ConnectWAP OK
+
+# disconnect from WAP
+C DisconnectWAP <SSID>
+R DisconnectWAP OK
+
+# set ip address
+C SetIpAddress <interface>|<ip>
+R SetIpAddress OK
+
+# set subnet mask
+C SetSubnetMask <interface>|<mask>
+R SetSubnetMask OK
+
+# set default gateway
+C SetDefaultGateway <interface>|<ip>
+R SetDefaultGateway OK
+
+# set primary DNS ip
+C SetPrimaryDNS <interface>|<ip>
+R SetPrimaryDNS OK
+
+# set secondary DNS ip
+C SetSecondaryDNS <interface>|<ip>
+R SetSecondaryDNS OK
+
+# set DHCP flag
+C SetDhcpEnabled <interface>|<value>
+R SetDhcpEnabled OK
+
+# set proxy address
+#may be an address such as proxy.test.com
+C SetProxyIP <ip>
+R SetProxyIP OK
+
+# set proxy port
+C SetProxyPort <port>
+R SetProxyPort OK
+
+# set proxy username
+C SetProxyUsername <name>
+R SetProxyUsermane OK
+
+# set proxy password
+C SetProxyPassword <password>
+R SetProxyPassword OK
+
+# get device information
+C GetDeviceInfo
+#<DeviceName#SerialNumber#MacAddress#WiFiAddress#IMEI>
+R GetDeviceInfo <AE-615-MPDL#PDL-A003#01:1f:7B:20:02:dc#ea:2a:82:70:62:50#123456786543210>
+
+# get system information
+C GetSystemInfo
+#<Capacity#Available#OS#LoaderVer>
+R GetSystemInfo <8 GB#7.1 GB#am37x-evm 2.6.37#V0.9 - 23.03.2013>
+
+# get repository information
+C GetRepositoryInfo
+#<LastUpdate#SwpnNo#Size>
+R GetRepositoryInfo <3nd Apr 2013 19:07#64#56 MB>
+
+# get Ethernet information
+C GetEthernetInfo
+#<DHCP#IpAddress#SybnetMask#DefaultGateway>
+R GetEthernetInfo <No#192.168.1.2#255.255.255.0#192.168.1.1>
+
+# get WiFi information
+C GetWiFiInfo
+#<DHCP#IpAddress#SybnetMask#DefaultGateway>
+R GetWiFiInfo <No#192.168.1.2#255.255.255.0#192.168.1.1>
+
+# get DNS information
+C GetDnsInfo
+#<PrimaryDns#SecondaryDns>
+R GetDnsInfo <8.8.8.8#8.8.8.4>

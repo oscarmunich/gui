@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "qmlapplicationviewer.h"
+#include "qmlapplicationviewer/qmlapplicationviewer.h"
 #include "Backend.h"
 #include <QApplication>
 #include <QFile>
@@ -68,8 +68,6 @@ void Backend::Init()
 
     setStatusColor("blue");
 
-    mRETailSignWhole.setPattern("^[A-Z][A-Z0-9-/]*");
-    mRETailSignStart.setPattern("^[A-Z]");
     creatMonitorSocket();
 
     connect(&mRunClient,              SIGNAL(setStatus(QString)),            this, SLOT(setStatus(QString)));
@@ -108,6 +106,16 @@ void Backend::setConfigValue(const QString a, const QString b) {
     }
 }
 
+void Backend::loadRepositoryCounts() {
+    int availswpns     = getDB().countTable("vw_pdl_swpn");
+    int notdownloaded  = getDB().getSingleValue("select count(*) from tmp_swpn_rep where status = 2").toInt();
+    mRepositoryAll     = availswpns + notdownloaded;
+    mRepositoryValid   = getDB().getValidCount();
+    mRepositoryNotDown = mRepositoryAll - availswpns;
+    mRepositoryExpired = availswpns - mRepositoryValid;
+    mRepositoryNotRef  = getDB().getSingleValue("select count(*) from tmp_swpn_rep where status = 3").toInt();
+}
+
 // ---------------- SWPN selection
 QStringListModel *Backend::airlineModel()
 {
@@ -133,7 +141,7 @@ void Backend::setAirline(QString name)
 {
     mAirline = name;
     mAirlineKey = Airlines.key(name);
-    if (!name.isEmpty()) qDebug() << "setAirLine:" + name;
+    if (!name.isEmpty()) qDebug() << "setAirLinea:" + name;
 
     setACType(mEmpty);
 

@@ -47,8 +47,6 @@ void DataLoadModel::loadAtaChapters(const QString &airlineId, const QString &act
 
 void DataLoadModel::loadAtaSections(const QString &airlineId, const QString &actmodelId, const QString &tailsignId, const QString &ataChapterId)
 {
-    //exec(QString("SELECT DISTINCT asec.atasection_no AS atasection_id, asec.atasection AS atasection_displayed FROM vw_pdl_swpn_ac sa "
-
     exec(QString("SELECT DISTINCT asec.atasection_no AS atasection_id, asec.atasection_no || ' - ' || asec.atasection AS atasection_displayed FROM vw_pdl_swpn_ac sa "
                  "JOIN vw_pdl_ac ac ON (sa.tailsign=ac.tailsign) "
                  "JOIN vw_pdl_atasection asec ON (sa.atasection_no=asec.atasection_no AND sa.atachapter_no=asec.atachapter_no AND ac.acmodel=asec.acmodel) "

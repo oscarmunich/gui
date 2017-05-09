@@ -1,6 +1,6 @@
 // import QtQuick 1.0 // to target S60 5th Edition or Maemo 5
 import QtQuick 2.5
-import "../colibri_mod"
+//import "../colibri_mod"
 import "./Components"
 
 Page {
@@ -27,8 +27,6 @@ Page {
     }
 
     onVisibleChanged: {
-        //clkeyboard1.text  = ""
-        //clkeyboard2.text  = ""
     }
 
     Rectangle {

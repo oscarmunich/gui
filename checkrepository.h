@@ -19,6 +19,7 @@ public:
     QString pn2fs(QString pn);
     QString fs2pn(QString pn);
     static void createCheckThread();
+    bool quickCheck();
 
 signals:
     void PNOk(QString, bool);

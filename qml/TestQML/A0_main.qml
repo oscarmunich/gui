@@ -1,7 +1,7 @@
 // import QtQuick 1.0 // to target S60 5th Edition or Memo 5
 import QtQuick 2.5
 import Network 1.0
-import "../colibri_mod"
+//import "../colibri_mod"
 import "./Components"
 import "../js/Styler.js" as Styler
 
@@ -84,8 +84,26 @@ Rectangle {
         }
     }
 
-    A1_Repository {
+    A1_Repository_0 {
         id: repositoryPage
+
+        visible: false
+        anchors.right: parent.right
+        anchors.rightMargin: 0
+        anchors.left: parent.left
+        anchors.leftMargin: 0
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 0
+        anchors.top: header.bottom
+        anchors.topMargin: 0
+
+        onRepositoryClicked: {
+            main.state = "RepositoryPageList";
+        }
+    }
+
+    A1_Repository {
+        id: repositoryPageList
 
         visible: false
         anchors.right: parent.right
@@ -550,7 +568,13 @@ Rectangle {
             name: "RepositoryPage"
             PropertyChanges { target: repositoryPage; visible: true }
             PropertyChanges { target: header_name; text: "Repository" }
-            PropertyChanges { target: header_purge; visible: true }
+            //PropertyChanges { target: header_purge; visible: true }
+        },
+        State {
+            name: "RepositoryPageList"
+            PropertyChanges { target: repositoryPageList; visible: true }
+            PropertyChanges { target: header_name; text: "Repository" }
+            //PropertyChanges { target: header_purge; visible: true }
         },
         State {
             name: "Information"

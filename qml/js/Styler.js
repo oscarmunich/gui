@@ -13,7 +13,7 @@ var Colors = {
         }
     },
     TableHeader: {
-        Color: "blue"
+        Color: "lightblue"
     }
 }
 

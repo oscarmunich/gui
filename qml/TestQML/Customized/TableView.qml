@@ -79,12 +79,13 @@ Item {
 
     ListView {
         id: tableEmulator
+        height: 480
 
         anchors {
             top: headersRow.bottom
             left: parent.left
             right: parent.right
-            bottom: parent.bottom
+            //bottom: parent.bottom
         }
         clip: true
 

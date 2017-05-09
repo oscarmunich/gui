@@ -16,7 +16,6 @@ DBSqlite::DBSqlite(QObject *parent) :
 {
     mProcess     = NULL;
     mPostProcess = ACT_NULL;
-    mMissingSwpnsIter = NULL;
     mpSwpnsRepIns     = NULL;
 }
 
@@ -32,6 +31,8 @@ bool DBSqlite::loadNeeded()
     }
     QFileInfo lf(mFi.getDataFileName());
     QFileInfo db(mFi.getDataBaseName());
+
+    qDebug() << "loadNeeded:" << db.lastModified() << lf.lastModified();
 
     return (db.lastModified() < lf.lastModified()) ? true : false;
 }
@@ -68,7 +69,7 @@ bool DBSqlite::loadDB(bool clean)
         }
         f.close();
     }
-
+    mSwpnMetaCount = countTable("vw_pdl_swpn");
     if (clean) {
         verifySWPNs(true);
     } else {
@@ -86,22 +87,55 @@ int DBSqlite::buildDelta()
     return mMissingCount;
 }
 
-int DBSqlite::countTable(QString table)
+int DBSqlite::getValidCount()
 {
     QSqlQuery swpns_cnt(db);
-    swpns_cnt.prepare("select count(*) from " + table);
+    QDate now = QDate::currentDate();
+    QString sql = QString("select count(*) from vw_pdl_swpn where valid_from <= \"%1\" and valid_until >= \"%1\"")
+            .arg(QDate::currentDate().toString("yyyy-MM-dd"));
+    qDebug() << "getValidCount:" << sql;
+    swpns_cnt.prepare(sql);
     swpns_cnt.exec();
+    if (swpns_cnt.lastError().isValid()) {
+        QSqlError se = swpns_cnt.lastError();
+        qDebug() << "Error 1"      << se.text();
+    }
     swpns_cnt.next();
 
-    //qDebug() << "Count:" << table << swpns_cnt.value(0).toInt();
+    qDebug() << "Count:" << swpns_cnt.value(0).toInt();
 
     int ret = swpns_cnt.value(0).toInt();
     swpns_cnt.finish();
+    return ret;}
+
+int DBSqlite::countTable(QString table)
+{
+    int ret = getSingleValue("select count(*) from " + table).toInt();
+    qDebug() << "Count:" << table << ret;
+    return ret;
+}
+
+QString DBSqlite::getSingleValue(QString sql)
+{
+    QSqlQuery request(db);
+    QString ret;
+    request.prepare(sql);
+    request.exec();
+    if (request.lastError().isValid()) {
+        QSqlError se = request.lastError();
+        qDebug() << "getSingleValue" << sql << se.text();
+        return ret;
+    }
+    request.next();
+    ret = request.value(0).toString();
+    request.finish();
+    //qDebug() << "getSingleValue" << sql << request.value(0).toString();
     return ret;
 }
 
 void DBSqlite::showCounts()
 {
+    qDebug() << "ShowCounts -----------------------";
     countTable("vw_pdl_atasection");
     countTable("vw_pdl_atachapter");
     countTable("vw_pdl_airline");
@@ -111,62 +145,34 @@ void DBSqlite::showCounts()
     countTable("tmp_swpn_rep");
 }
 
+int DBSqlite::oneSQL(QString sql, QString text)
+{
+    QSqlQuery onesql(db);
+    onesql.prepare(sql);
+    onesql.exec();
+    if (onesql.lastError().isValid()) {
+        QSqlError se = onesql.lastError();
+        qDebug() << text << se.text();
+    }
+    onesql.finish();
+}
+
 int DBSqlite::cleanDB()
 {
-    insertRepFound();
+    insertRepFound(mFoundSwpns,   REP_SYNCED);
+    insertRepFound(mMissingSwpns, REP_NOTSYNCED);
+    insertRepFound(mNotRefSwpns,  REP_NOTREF);
     showCounts();
-    QSqlQuery swpns_del(db);
-    swpns_del.prepare("delete from vw_pdl_swpn where swpn not in (select swpn from tmp_swpn_rep)");
-    swpns_del.exec();
-    if (swpns_del.lastError().isValid()) {
-        QSqlError se = swpns_del.lastError();
-        qDebug() << "Error 1"      << se.text();
-    }
 
-    QSqlQuery swpns_del_ac(db);
-    swpns_del_ac.prepare("delete from vw_pdl_swpn_ac where swpn not in (select swpn from tmp_swpn_rep)");
-    swpns_del_ac.exec();
-    if (swpns_del_ac.lastError().isValid()) {
-        QSqlError se = swpns_del.lastError();
-        qDebug() << "Error 2"      << se.text();
-    }
-    swpns_del_ac.finish();
+    oneSQL("delete from vw_pdl_swpn where swpn not in (select swpn from tmp_swpn_rep where status = 1)",                      "delete swpn");
+    oneSQL("delete from vw_pdl_swpn_ac where swpn not in (select swpn from tmp_swpn_rep where status = 1)",                   "delete swpn_ac");
+    oneSQL("delete from tmp_swpn_rep where swpn in (select swpn from vw_pdl_swpn) and status = 1",                            "delete repository swpn");
+    oneSQL("delete from vw_pdl_ac where tailsign not in (select distinct tailsign from vw_pdl_swpn_ac)",                      "delete ac");
+    oneSQL("delete from vw_pdl_airline where iata_code not in (select distinct iata_code from vw_pdl_ac)",                    "delete airline");
+    oneSQL("delete from vw_pdl_atasection where acmodel not in (select distinct acmodel from vw_pdl_ac)",                     "delete section");
+    oneSQL("delete from vw_pdl_atachapter where atachapter_no not in (select distinct atachapter_no from vw_pdl_atasection)", "delete chapter");
+    showCounts();
 
-    QSqlQuery swpns_del_ts(db);
-    swpns_del_ts.prepare("delete from vw_pdl_ac where tailsign not in (select distinct tailsign from vw_pdl_swpn_ac)");
-    swpns_del_ts.exec();
-    if (swpns_del_ts.lastError().isValid()) {
-        QSqlError se = swpns_del.lastError();
-        qDebug() << "Error 3"      << se.text();
-    }
-    swpns_del_ts.finish();
-
-    QSqlQuery swpns_del_ia(db);
-    swpns_del_ia.prepare("delete from vw_pdl_airline where iata_code not in (select distinct iata_code from vw_pdl_ac)");
-    swpns_del_ia.exec();
-    if (swpns_del_ia.lastError().isValid()) {
-        QSqlError se = swpns_del.lastError();
-        qDebug() << "Error 4"      << se.text();
-    }
-    swpns_del_ia.finish();
-
-    QSqlQuery swpns_del_sec(db);
-    swpns_del_sec.prepare("delete from vw_pdl_atasection where acmodel not in (select distinct acmodel from vw_pdl_ac)");
-    swpns_del_sec.exec();
-    if (swpns_del_sec.lastError().isValid()) {
-        QSqlError se = swpns_del.lastError();
-        qDebug() << "Error 5"      << se.text();
-    }
-    swpns_del_sec.finish();
-
-    QSqlQuery swpns_del_cha(db);
-    swpns_del_cha.prepare("delete from vw_pdl_atachapter where atachapter_no not in (select distinct atachapter_no from vw_pdl_atasection)");
-    swpns_del_cha.exec();
-    if (swpns_del_cha.lastError().isValid()) {
-        QSqlError se = swpns_del.lastError();
-        qDebug() << "Error 6"      << se.text();
-    }
-    swpns_del_cha.finish();
     return 0;
 }
 
@@ -174,6 +180,7 @@ int DBSqlite::verifySWPNs(bool remove)
 {
     if (gBackend->mFi.isVerified())
             return 0;
+
     int count = buildDelta();
     qDebug() << "Download count:" << count << remove;
 
@@ -216,32 +223,22 @@ void DBSqlite::resetRepInfo() {
     resetRepFound();
 }
 
-void DBSqlite::insertRepFound() {
+void DBSqlite::insertRepFound(QMap<QString, QString> &map, repstat_t repstat) {
     time_t secs = time(0);
-    mFoundSwpnsIter = new QMapIterator<QString, QString>(mFoundSwpns);
+    QMapIterator<QString, QString> mapIter(map);
     QString t;
     QSqlQuery swpns(db);
 
-    if (!mFoundSwpnsIter->hasNext()) {
-          delete mFoundSwpnsIter;
-          mFoundSwpnsIter = NULL;
-          return;
-    }
-
-    while (mFoundSwpnsIter->hasNext()) {
+    QString format0(" select \"%1\" as 'swpn', %2 as 'status'");
+    QString formatN(" union select \"%1\", %2");
+    while (mapIter.hasNext()) {
         int count = 0;
-        QString insertSql = "insert into tmp_swpn_rep ";
-        while (mFoundSwpnsIter->hasNext()) {
-            mFoundSwpnsIter->next();
-            QString swpn    = mFoundSwpnsIter->key();
-            int media_count = mFoundSwpnsIter->value().toInt();
-            if (count == 0) {
-                insertSql      += t.sprintf("      select \"%s\" as 'swpn', %d as 'media_count' ", (const char*)swpn.toUtf8(), media_count);
-            } else {
-                insertSql      += t.sprintf("union select \"%s\", %d ",                            (const char*)swpn.toUtf8(), media_count);
-            }
-            if (++count >= 50)
-                break;
+        QString insertSql = "insert into tmp_swpn_rep";
+        while (mapIter.hasNext() and count++ < 50) {
+            mapIter.next();
+            QString swpn    = mapIter.key();
+            //qDebug() << "Repfound:" << swpn;
+            insertSql += ((count == 1) ? format0 : formatN).arg(swpn).arg(QString::number(repstat));
         }
         insertSql += ";";
 
@@ -255,40 +252,32 @@ void DBSqlite::insertRepFound() {
         // qDebug() << "insertRepFound:" << time(0) << count;
     }
     qDebug() << "insertRepFound" << "Elapsed:" << time(0) - secs;
-    delete mFoundSwpnsIter;
-    mFoundSwpnsIter = NULL;
-
 }
 
 void DBSqlite::resetRepFound() {
     mFoundSwpns.clear();
-    QSqlQuery swpns(db);
+    mMissingSwpns.clear();
+    mNotRefSwpns.clear();
 
-    swpns.exec("drop table tmp_swpn_rep");
-    if (swpns.lastError().isValid()) {
-        QSqlError se = swpns.lastError();
-        qDebug() << "Error 2a"      << se.text();
-    }
-    swpns.exec("create table tmp_swpn_rep (swpn text, media_count integer)");
-    if (swpns.lastError().isValid()) {
-        QSqlError se = swpns.lastError();
-        qDebug() << "Error 2b"      << se.text();
-    }
-
-    if (!mpSwpnsRepIns) {
-        mpSwpnsRepIns = new  QSqlQuery(db);
-        mpSwpnsRepIns->prepare("insert into tmp_swpn_rep values (:swpn, :media_count)");
-    }
+    oneSQL("drop table tmp_swpn_rep",                                    "Drop tmp repository table");
+    oneSQL("create table tmp_swpn_rep (swpn text, status integer)", "create tmp repository table");
+    oneSQL("create unique index unq_s_tmpswpn on tmp_swpn_rep ( swpn )", "create index tmp repository table");
 }
 
-void DBSqlite::addRepInfo(QString swpn, QString media_count, bool inRep) {
-    //qDebug() << "addRepInfo" << swpn << media_count.toInt() << inRep;
-    if (!inRep) {
+void DBSqlite::addRepInfo(QString swpn, QString media_count, int status) {
+    //qDebug() << "addRepInfo" << swpn << media_count.toInt() << status;
+    switch(status) {
+    case REP_SYNCED:
+        mFoundSwpns.insert(swpn, media_count);
+        break;
+    case REP_NOTSYNCED:
         mMissingSwpns.insert(swpn, media_count);
         mMissingCount += media_count.toInt();
-        return;
+        break;
+    case REP_NOTREF:
+        mNotRefSwpns.insert(swpn, media_count);
+        break;
     }
-    mFoundSwpns.insert(swpn, media_count);
 }
 
 void DBSqlite::openNewSwpn() {
